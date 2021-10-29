@@ -25,4 +25,39 @@ module.exports = {
       next(error);
     }
   },
+  registerAction: async (req, res, next) => {
+    const { username, password, name, kelas, role } = req.body;
+    const parseRole = role === "admin" ? 1 : 0;
+    try {
+      Users.findOne({ username }).then((users) => {
+        if (users) {
+          res
+            .status(400)
+            .json(response.set(false, `Username ${username} sudah terdaftar`));
+        } else {
+          Users.create({
+            username,
+            password: bcrypts.hash(password),
+            name,
+            kelas,
+            role: parseRole,
+          })
+            .then(async (datas) => {
+              if (datas) {
+                res
+                  .status(200)
+                  .json(
+                    response.set(true, "Berhasil membuat account baru", datas)
+                  );
+              }
+            })
+            .catch((err) => {
+              throw new Error(err);
+            });
+        }
+      });
+    } catch (error) {
+      next(error);
+    }
+  },
 };
